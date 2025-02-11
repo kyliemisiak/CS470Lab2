@@ -7,15 +7,19 @@
 #include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 int main(){
 
-	int pid;
+	pid_t pid;
 	int i;
+	int status;
 
-	for(i = 0; i < 10; i++){
+	//use fork() in a loop to create multiple child processes
+	for(i = 1; i < 11; i++){
 		pid = fork();
 
+		//include basic error handling
 		if(pid < 0){
 			//if pid is less than 0, error
 			perror("fork failed");
@@ -25,10 +29,12 @@ int main(){
 			//argument array
 			char *args[4];
 
-			//start switch cases
+			printf("Child %d with PID %d started.\n", i, getpid());
+
+			//start switch cases for child tasks
 			switch(i){
 				case 0:
-					//first task
+					//task 1
 					args[0] = "echo";
 					args[1] = "Hello Kylianna";
 					args[2] = NULL;
@@ -50,29 +56,77 @@ int main(){
 				case 3:
 					//task 4
 					args[0] = "echo";
-                    			args[1] = "Fourth task.";
+                    			args[1] = "This is the fourth task.";
                     			args[2] = NULL;
                     			execvp(args[0], args);
                     			break;
 				case 4:
 					//task 5
 					args[0] = "echo";
-                    			args[1] = "Fifth Task.";
+                    			args[1] = "This is the fifth Task.";
                     			args[2] = NULL;
                     			execvp(args[0], args);
                     			break;
+				case 5:
+					//task 6
+					args[0] = "echo";
+					args[1] = "This is the sixth task";
+					args[2] = NULL;
+					execvp(args[0], args);
+					break;
+				case 6:
+					//task 7
+					args[0] = "echo";
+					args[1] = "This is the seventh task";
+					args[2] = NULL;
+					execvp(args[0], args);
+					break;
+				case 7:
+					//task 8
+					args[0] = "echo";
+					args[1] = "This is the eighth task";
+					args[2] = NULL;
+					execvp(args[0], args);
+					break;
+				case 8:
+					//task 9
+					args[0] = "echo";
+					args[1] = "This is the ninth task";
+					args[2] = NULL;
+					execvp(args[0], args);
+					break;
+				case 9:
+					//task 10
+					args[0] = "echo";
+					args[1] = "This is the last task, task 10";
+					args[2] = NULL;
+					execvp(args[0], args);
+					break;
 				default:
 					break;
 			}
-			perror("execvp failed");
-			exit(1);
+
+		}else{
+			pid_t wpid = waitpid(pid, &status, 0);
+
+			if(wpid == -1){
+				perror("waitpid failed");
+			}else{
+
+			//use wait() or waitpid() to wait for child processses to finish
+			//report completion status of each child process
+				if(WIFEXITED(status)){
+					int exit_stat = WEXITSTATUS(status);
+					printf("Child %d exited normally with status %d. \n", wpid, exit_stat);
+				}else if(WIFSIGNALED(status)){
+					int signal_num = WTERMSIG(status);
+					printf("Child %d was terminated by signal %d.\n", wpid, signal_num);
+				}else{
+					printf("Child %d terminated abnormally.\n", wpid);
+				}
+			}
 		}
 	}
-
-	for(i = 0; i < 10; i++){
-		wait(NULL);
-	}
-
 	printf("All child processes have completed.\n");
 	return 0;
 }
